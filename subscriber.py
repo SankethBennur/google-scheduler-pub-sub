@@ -1,10 +1,14 @@
 import os
+import asyncio
+
 from google.cloud import pubsub_v1
 from concurrent.futures import TimeoutError
 from dotenv import load_dotenv
 
-from instagram_ad_insights import *
-from daily_reports import *
+# from instagram_ad_insights import *
+# from daily_reports import *
+from controller import *
+
 
 load_dotenv("D:\QUICKMETRIX\google-scheduler-pub-sub\.env")
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.environ["SERVICE_ACCOUNT_KEY_PUBSUB"]
@@ -20,21 +24,17 @@ subscription_path = os.environ["SUBSCRIPTION_PATH"] + subscription_enum[0]
 def callback(message):
     print("-------------------")
     print(f'Received message: {message}')
-    print(f'data: {message.data}')
-
-    if message.attributes:
-        print("Attributes:")
-        for key in message.attributes:
-            value = message.attributes.get(key)
-            print(f"{key}: {value}")
-
     message.ack()
 
     if((message.data).decode("utf-8")=="Daily Report"):
-        exec_01(message=message)
+        daily_reports_handler = daily_reports(message=message)
+        asyncio.run(daily_reports_handler.print_message())
+        print("executing...")
     
     elif((message.data).decode("utf-8")=="Instagram ad post insights"):
-        exec_02(message=message)
+        instagram_ad_insights_handler = instagram_ad_insights(message=message)
+        asyncio.run(instagram_ad_insights_handler.print_message())
+        print("executing...")
     
 
 
