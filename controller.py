@@ -1,34 +1,45 @@
-import asyncio
-import time
+import os
+import json
 
 
-class daily_reports():
+class controller():
     def __init__(self, message):
+        """
+        """
         self.message = message
+        self.shell_command = ""
 
-    async def print_message(self):
-        print("\n===================")
-        print("Daily Reports")
-        print("---------------------")
-        print("I am going to sleep for 5 seconds...")
-        await time.sleep(5)
-        print("I am awake!")
-        if(self.message.data): print(self.message.data)
-        if(self.message.attributes): print(self.message.attributes)
-        print("===================\n")
+        data = message.data.decode('utf-8')
+        attributes = (dict(message.attributes))
+        msg_dict = {"data":data, "attributes":attributes}
+
+        if("Daily Report".lower() in data.lower()):
+            self.shell_command = self.construct_shell_command(
+                                    py_module="daily_reports.py",
+                                    message_dict=msg_dict
+                                )
+        elif("Instagram Ad Post Insights".lower() in data.lower()):
+            self.shell_command = self.construct_shell_command(
+                                    py_module="instagram_ad_insights.py",
+                                    message_dict=msg_dict
+                                )
 
 
-class instagram_ad_insights():
-    def __init__(self, message):
-        self.message = message
-        
-    async def print_message(self):
-        print("\n===================")
-        print("Instagram Ad Insights")
-        print("---------------------")
-        print("I am going to sleep for 5 seconds...")
-        await time.sleep(5)
-        print("I am awake!")
-        if(self.message.data): print(self.message.data)
-        if(self.message.attributes): print(self.message.attributes)
-        print("===================\n")
+    def construct_shell_command(self, py_module, message_dict):
+        """
+        """
+        shell_command = ""
+        shell_command = "python {0} \"{1}\"".format(
+                                            py_module,
+                                            json.dumps(message_dict)\
+                                                .replace('\"','\\"')
+                                        )
+        print("$>  {}".format(shell_command))
+        return shell_command
+
+
+    def exec(self):
+        """
+        """
+        os.system(self.shell_command)
+
