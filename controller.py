@@ -1,45 +1,28 @@
-import os
-import json
+from daily_reports import *
+from instagram_ad_insights import *
 
 
-class controller():
-    def __init__(self, message):
-        """
-        """
-        self.message = message
-        self.shell_command = ""
+def perform_task(message):
+    """
+    """
+    data = message.data.decode('utf-8')
+    attributes = dict(message.attributes)
+    T = None
 
-        data = message.data.decode('utf-8')
-        attributes = (dict(message.attributes))
-        msg_dict = {"data":data, "attributes":attributes}
+    msg_dict = {
+        "data": data,
+        "attributes": attributes
+    }
 
-        if("Daily Report".lower() in data.lower()):
-            self.shell_command = self.construct_shell_command(
-                                    py_module="daily_reports.py",
-                                    message_dict=msg_dict
-                                )
-        elif("Instagram Ad Post Insights".lower() in data.lower()):
-            self.shell_command = self.construct_shell_command(
-                                    py_module="instagram_ad_insights.py",
-                                    message_dict=msg_dict
-                                )
+    if("daily report" in data.lower()):
+        T = daily_reports(msg_dict)
+    elif("instagram ad" in data.lower()):
+        T = instagram_ad_insights(msg_dict)
 
+    try:
+        T.print_message()
 
-    def construct_shell_command(self, py_module, message_dict):
-        """
-        """
-        shell_command = ""
-        shell_command = "python {0} \"{1}\"".format(
-                                            py_module,
-                                            json.dumps(message_dict)\
-                                                .replace('\"','\\"')
-                                        )
-        print("$>  {}".format(shell_command))
-        return shell_command
+    except Exception as e:
+        print(e)
 
-
-    def exec(self):
-        """
-        """
-        os.system(self.shell_command)
 
